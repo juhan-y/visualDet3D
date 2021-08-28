@@ -3,7 +3,7 @@ import os
 import numpy as np
 
 cfg = edict()
-cfg.obj_types = ['Car', 'Pedestrian']
+cfg.obj_types = ['Car', 'Pedestrian'] # 객체 종류 두개로 제한, Car, Pedestrain
 
 ## trainer
 trainer = edict(
@@ -17,7 +17,7 @@ trainer = edict(
     evaluate_func = "evaluate_kitti_obj",
 )
 
-cfg.trainer = trainer
+cfg.trainer = trainer  # train을 위한 trainer config정보 
 
 ## path
 path = edict()
@@ -51,7 +51,7 @@ path.val_imdb_path = os.path.join(path.preprocessed_path, "validation")
 if not os.path.isdir(path.val_imdb_path):
     os.mkdir(path.val_imdb_path)
 
-cfg.path = path
+cfg.path = path # 존재하지 않는 path면 만들어주고 아니면 냅두는 과정을 반복해서 각 path를 만들고 그 모든 path가 저장된 path를 config에 저장
 
 ## optimizer
 optimizer = edict(
@@ -62,7 +62,7 @@ optimizer = edict(
     ),
     clipped_gradient_norm = 0.1
 )
-cfg.optimizer = optimizer
+cfg.optimizer = optimizer # 학습할 때 필요한 optimizer 정보 config 저장
 ## scheduler
 scheduler = edict(
     type_name = 'CosineAnnealingLR',
@@ -71,7 +71,7 @@ scheduler = edict(
         eta_min   = 5e-6,
     )
 )
-cfg.scheduler = scheduler
+cfg.scheduler = scheduler # torch에서 제공하는 learning rate scheduler를 사용하여 learning rate를 학습함에 따라 조정하여 최적값에 더 optimize할 수 있게 한다.
 
 ## data
 data = edict(
@@ -83,14 +83,14 @@ data = edict(
     test_dataset  = "KittiStereoTestDataset",
     train_split_file = os.path.join(cfg.path.visualDet3D_path, 'data', 'kitti', 'test_split', 'train.txt'),
     val_split_file   = os.path.join(cfg.path.visualDet3D_path, 'data', 'kitti', 'test_split', 'val.txt'),
-)
+)  # dataset에 대한 정보 - edict() 자료형으로 정의
 
 data.augmentation = edict(
     rgb_mean = np.array([0.485, 0.456, 0.406]),
     rgb_std  = np.array([0.229, 0.224, 0.225]),
     cropSize = (data.rgb_shape[0], data.rgb_shape[1]),
     crop_top = 100,
-)
+) # dataset augmentation을 위해 sampling할 수 있는 평균과 표준편차 정보, cropsize 정보를 저장.
 data.train_augmentation = [
     edict(type_name='ConvertToFloat'),
     edict(type_name='PhotometricDistort', keywords=edict(distort_prob=1.0, contrast_lower=0.5, contrast_upper=1.5, saturation_lower=0.5, saturation_upper=1.5, hue_delta=18.0, brightness_delta=32)),
@@ -98,17 +98,17 @@ data.train_augmentation = [
     edict(type_name='Resize', keywords=edict(size=data.augmentation.cropSize)),
     edict(type_name='RandomMirror', keywords=edict(mirror_prob=0.5)),
     edict(type_name='Normalize', keywords=edict(mean=data.augmentation.rgb_mean, stds=data.augmentation.rgb_std))
-]
+] # train_augmentation에 여러가지 edict()를 넣어서 typename으로 여러가지 종류의 augmentation을 할 수 있게 한다.
 data.test_augmentation = [
     edict(type_name='ConvertToFloat'),
     edict(type_name='CropTop', keywords=edict(crop_top_index=data.augmentation.crop_top)),
     edict(type_name='Resize', keywords=edict(size=data.augmentation.cropSize)),
     edict(type_name='Normalize', keywords=edict(mean=data.augmentation.rgb_mean, stds=data.augmentation.rgb_std))
-]
+] # train 부분과 동일 ( 옵션이 더 적음 )
 cfg.data = data
 
 ## networks
-detector = edict()
+detector = edict()  # detector라는 edict() 자료형을 만들고 detector에 각각의 이름과 객체type 등 여러가지 정보를 저장한다.
 detector.obj_types = cfg.obj_types
 detector.name = 'Stereo3D'
 detector.backbone = edict(
@@ -119,7 +119,7 @@ detector.backbone = edict(
     out_indices=(0, 1, 2),
     norm_eval=True,
     dilations=(1, 1, 1),
-)
+) # backbone에 들어갈 여러 hyperparameter를 저장
 head_loss = edict(
     fg_iou_threshold = 0.5,
     bg_iou_threshold = 0.4,
@@ -127,7 +127,7 @@ head_loss = edict(
     focal_loss_gamma = 2.0,
     balance_weight   = [20.0, 40],
     regression_weight = [1, 1, 1, 1, 1, 1, 12, 1, 1, 0.5, 0.5, 0.5, 1], #[x, y, w, h, cx, cy, z, sin2a, cos2a, w, h, l]
-)
+) # threshold와 hyperparameter 등 저장.
 head_test = edict(
     score_thr=0.75,
     cls_agnostic = False,
