@@ -8,7 +8,7 @@ CUDA_VER=$(python3 -c "import torch;print(torch.version.cuda)")
 if [[ $CUDA_VER < "10.0" || $TORCH_VER < '1.3' ]] ; then 
     echo "The current version of pytorch/cuda is $TORCH_VER/$CUDA_VER which could be not compatible with deformable convolution, we will not compile DCN for now. As long as you do not init DCN instance in code, the code will run fine."
 else
-    pushd visualDet3D/networks/lib/ops/dcn
+    pushd visualDet3D/networks/lib/ops/dcn  # pushd를 통해 change directory 가능 popd를 통해 원래 directory로 돌아오는 것이 가능
     sh make.sh
     rm -r build
     popd
